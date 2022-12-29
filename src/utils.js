@@ -32,7 +32,7 @@ class JSONHandler {
         createIfNoExists(FILE_ACCOUNTS)
         createIfNoExists(FILE_USERS)
     }
-
+    
     // Basically it will add an user object into json file
     addToJSONUsers(obj) {
         addToJSONFile(obj, FILE_USERS)

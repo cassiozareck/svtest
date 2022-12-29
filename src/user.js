@@ -18,12 +18,14 @@ class User {
 // retornar um usuário
 function login(email, passw) {
     let accounts = jh.getAccountsList()
+    
     for (let i = 0; i < accounts.length; i++) {
         if (accounts[i].email == email && 
             accounts[i].password == passw) {
                 return searchUser(accounts[i].email)
             }
-    }   
+    }
+
     return null
 }
 
@@ -51,7 +53,7 @@ function signUp(email, passw) {
             name: username,
             email: email
         }
-        
+
         jh.addToJSONUsers(user)
 
         return true

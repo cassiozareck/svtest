@@ -1,9 +1,19 @@
+/* 
+ * Copyright (c) 2022 - 2023 Snowflake Computing Inc. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * 
+ * Author: Cássio Zareck
+*/
 'use strict'
 
 const express = require('express')
 const app = express()
 const bodyParser = require('body-parser')
 const user = require('./user')
+
+const VERBOSE = true // Will output log debugs
 
 // Utility to parse requests comming from client side
 // apparently not in use since we are not using body
@@ -42,3 +52,5 @@ app.post('/login', (req, res) => {
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`)
   })
+
+module.exports = {VERBOSE}

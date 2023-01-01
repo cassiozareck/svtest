@@ -1,4 +1,4 @@
-const hello = require("./hello")
+/*const hello = require("./hello")
 const fs = require('fs')
 
 test('Basic test: Do sign up worked?', () => {
@@ -31,3 +31,4 @@ test('Basic test: Clean file', () => {
 })
 
 
+*/

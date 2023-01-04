@@ -1,34 +1,57 @@
-/*const hello = require("./hello")
-const fs = require('fs')
+const { connection } = require('./src/sql');
+const {signUp, deleteUser, User} = require('./src/user')
+  
+const deleteTestUser = () => {
+    deleteUser('testuser').then((_) => {
+        
+    }).catch((err) => {})
+}
 
-test('Basic test: Do sign up worked?', () => {
-    hello.clean(hello.FILE_ACCOUNTS)
-    expect(hello.signUp('cassio', '123123')).toBe(!null)
+deleteTestUser()
+
+test('Just registering normal user', () => {     
+    return signUp('testuser', '123123').then((user) => {
+        
+        expect(user).toStrictEqual(new User('testuser'));
+        
+        deleteTestUser()
+
+    }).catch((err) => {throw err})
+});    
+
+test('Registering same user', () => {
+    return signUp('testuser', '123123').catch(err => {
+        throw err
+    }).then((_) => {
+
+        signUp('testuser', '123123').catch(err => {
+            expect(err).toStrictEqual({error: 'not_available'});
+     
+            deleteTestUser()
+        })
+    })
+    
+});
+
+test('Registering invalid credentials', () => {
+    signUp('testuser', '').catch((err) => {
+        expect(err).toStrictEqual({error: 'invalid_credentials'});
+    })
+    signUp('    ', '123').catch((err) => {
+        expect(err).toStrictEqual({error: 'invalid_credentials'});
+    })
+    signUp('testuser', 123123).catch((err) => {
+        expect(err).toStrictEqual({error: 'invalid_credentials'});
+    })
+    signUp('testuser', '  ').catch((err) => {
+        expect(err).toStrictEqual({error: 'invalid_credentials'});
+    })
+    
+    // here we dont need to delete testuser as it doesn't even insert
+    // into mysql db
+});
+
+afterAll(async () => {
+    await connection.end()
 })
 
-test('Basic test: Login at new user', () => {
-    hello.clean(hello.FILE_ACCOUNTS)
-    hello.signUp('alice', '1123')
-    expect(hello.login('alice', '1123')).toBe(!null)
-})
-
-test('Basic test: Login at non-existent user', () => {
-    hello.clean(hello.FILE_ACCOUNTS)
-    expect(hello.login('ace', '123')).toBe(null)
-})
-
-let file = 'test.txt'
-test('Basic test: Open and write to file', () => {
-    hello.createFile(file)
-    hello.writeToFile('asdsadasd', file)
-    expect(fs.readFileSync(file, 'utf-8')).toBe('asdsadasd')
-})
-
-test('Basic test: Clean file', () => {
-    hello.clean(file)
-    expect(fs.readFileSync(file, 'utf-8')).toBe('')
-    fs.unlinkSync(file)           // Remover arquivo  
-})
-
-
-*/

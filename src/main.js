@@ -15,6 +15,12 @@ const user = require('./user')
 
 const VERBOSE = true // Will output log debugs
 
+function debug(msg) {
+    if (VERBOSE) {
+        console.log(msg)
+    }
+}
+
 // Utility to parse requests comming from client side
 // apparently not in use since we are not using body
 app.use(bodyParser.urlencoded({extended: true}))
@@ -53,4 +59,4 @@ app.listen(port, () => {
     console.log(`Example app listening on port ${port}`)
   })
 
-module.exports = {VERBOSE}
+module.exports = {debug}

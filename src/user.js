@@ -1,22 +1,20 @@
 /* -=============== ACCOUNT AND LOGIN MANAGEMENT */
 'use strict'
-const {VERBOSE} = require('./main')
 const {connection} = require('./sql')
 
 class User {
-    constructor(name, email) {
+    constructor(name) {
         this.name = name
-        this.email = email
     }
 }
 
 function validateInput(username, passw) {
     // Validate input arguments
-    if (typeof email !== 'string' || email.trim().length === 0) {
-        return { error: 'Invalid username' };
+    if (typeof username !== 'string' || username.trim().length === 0) {
+        return { error: 'invalid_credentials'};
     }
     if (typeof passw !== 'string' || passw.trim().length === 0) {
-        return { error: 'Invalid password' };
+        return { error: 'invalid_credentials'};
     }
     return {}
 }
@@ -35,6 +33,7 @@ const checkUsernameAvailability = (username) => {
             )
     })
 }
+
 function registerAtSQL(username, password) {
     return new Promise((resolve, reject) => {
         connection.query(
@@ -52,42 +51,73 @@ function registerAtSQL(username, password) {
 }
 
 function signUp(username, password) {
-    validateInput(username, password)
-    checkUsernameAvailability(username)
-        .then((res) => {
-            if (res) {
-                if (VERBOSE) {
-                    console.log(`username: "${username}" available`)
-                }    
-                registerAtSQL(username, password).catch(
-                    (err) => {
-                        console.error(err)
-                    }).then((rows) => {
-                        if (VERBOSE) {
-                            console.log(`Added: "${rows}"`)
-                        }
-                    })
-            } else {
-                if (VERBOSE) {
-                    console.error(`username: ${username} not available`)
-                    return {error: `username: ${username} not available`}
-                }
-            }
-        }).catch((err) => {
-                console.error(err)
-                return {error: err}
-            })
-}
-signUp('cassio', 123123)
+    return new Promise((resolve, reject) => {
+        const res = validateInput(username, password)
+        
+        if (res.error) {
+            console.error('Invalid input')
+            reject(res)
+        }
 
+        checkUsernameAvailability(username)
+            .then((res) => {
+                if (res) {
+                    console.log(`username: "${username}" available`)
+                    
+                    registerAtSQL(username, password).catch(
+                        (err) => {
+                            console.error(err)
+                            reject(err)
+                        }).then((rows) => {
+                            console.log(`Added: "${username}"`)
+                            resolve(getUser(username))
+                        })
+
+                } else {
+                    console.error(`Username: ${username} not available`)
+                    reject({error: `not_available`})
+                }
+            }).catch((err) => {
+                    console.error(err)
+                    reject(err)
+                })
+        })
+}
+
+function deleteUser(username) {
+    /* When we're making a query it will return a query object and not a 
+    promisse, that means, as query is async, we need to return Promise so
+    the caller function can assign a function will be called when query
+    returns row sucessfuly or an callback for error*/
+    return new Promise((resolve, reject) => {
+        connection.query(
+            `DELETE FROM accounts WHERE username = "${username}"`,
+            (err, row) => {
+                if (err) {
+                    console.error(err)
+                    reject(err)   
+                } else {
+                    if (row.affectedRows === 0) {
+                        console.error(`User not found: `, username)
+                        reject({error: 'User not found'})
+                    } else {
+                        resolve(row)
+                    }
+                }
+                })
+    })
+}
+
+function getUser(username) {
+    return new User(username)
+}
 
 function checkAccount(email, passw, accounts) {
-    if (accounts[email] === passw) {
-        if (VERBOSE) {
-            console.log('Found account')
-            console.log('Logging in user: ' + email + 
+    if (accounts[email] === passw) {    
+        console.log('Found account')
+        console.log('Logging in user: ' + email + 
                     'with password: '+ passw)
-        }
+        
         return searchUser(email)
     } 
 
@@ -99,9 +129,8 @@ function login(email, passw) {
     const validationResult = validateInput(email, passw)
     if (validateInput.error) {
         
-        if (VERBOSE) {
-            console.log(validateInput.error)
-        }
+        console.log(validateInput.error)
+    
         return validationResult
     }
 
@@ -116,9 +145,7 @@ function searchUser(email) {
     
     for (let i = 0; i < users.length; i++) {
         if (users[i].email == email) {
-
-            if (VERBOSE)
-                { console.log('Found user: ' + users[i].email) }
+            console.log('Found user: ' + users[i].email) 
                 
             return new User(users[i].name, users[i].email)
         }}
@@ -126,5 +153,4 @@ function searchUser(email) {
     throw Error('Email not found')
 }
 
-
-//module.exports = {login, signUp}
+module.exports = {signUp, login, deleteUser, User}

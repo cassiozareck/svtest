@@ -1,2 +1,0 @@
-[ ] - change email to user for intuitive things
-[ ] - pass signUp to user and commit changes

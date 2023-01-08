@@ -11,15 +11,8 @@
 const express = require('express')
 const app = express()
 const bodyParser = require('body-parser')
+const mysql = require("mysql2")
 const user = require('./user')
-
-const VERBOSE = true // Will output log debugs
-
-function debug(msg) {
-    if (VERBOSE) {
-        console.log(msg)
-    }
-}
 
 // Utility to parse requests comming from client side
 // apparently not in use since we are not using body
@@ -27,7 +20,23 @@ app.use(bodyParser.urlencoded({extended: true}))
 
 const port = 3000
 
-/* -=============== EXPRESS */
+let connected = false
+
+const connection = mysql.createConnection({
+    host: 'localhost',
+    user: 'root',
+    password: 'Sql123123!',
+    database: 'books'
+})
+
+// Connect to the MySQL server
+connection.connect(function(err) {
+    if (err) throw err;
+    console.log('Connected to the MySQL server.');
+    connected = true
+});
+
+/* -=============== EXPRESS 
 app.get('/', (req, res) => {
     const name = req.query.name
     res.send('Hello World! ' + name)
@@ -58,5 +67,5 @@ app.post('/login', (req, res) => {
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`)
   })
-
-module.exports = {debug}
+*/
+module.exports = {connection, connected}

@@ -1,6 +1,7 @@
 /* -=============== ACCOUNT AND LOGIN MANAGEMENT */
+
 'use strict'
-const {connection} = require('./sql')
+const {connection} = require('./main')
 
 class User {
     constructor(name) {
@@ -8,26 +9,36 @@ class User {
     }
 }
 
-function validateInput(username, passw) {
+/*
+ * Will of course verify if username or password isnt empty
+ * or isnt a string
+ */
+function validateInput(username, password) {
     // Validate input arguments
     if (typeof username !== 'string' || username.trim().length === 0) {
         return { error: 'invalid_credentials'};
     }
-    if (typeof passw !== 'string' || passw.trim().length === 0) {
+    if (typeof password !== 'string' || password.trim().length === 0) {
         return { error: 'invalid_credentials'};
     }
     return {}
 }
 
+/*
+ * This function will check if isnt a created account
+ * with the given username argument. It returns a promise of 
+ * course because it is a sql call (async)
+ */
 const checkUsernameAvailability = (username) => {
     return new Promise((resolve, reject) => {
+       
         connection.query(
             `SELECT username FROM accounts WHERE username = "${username}"`,
             (err, rows) => {
-                if (err) {
+                if (err) {  // if the SQL call get an error
                     reject(err)
                 } else {
-                    resolve(rows.length === 0)
+                    resolve(rows.length === 0) // true if it doesn't exist
                 }
             }
             )
@@ -64,11 +75,13 @@ function signUp(username, password) {
                 if (res) {
                     console.log(`username: "${username}" available`)
                     
+                    // Will register in accounts table
                     registerAtSQL(username, password).catch(
                         (err) => {
                             console.error(err)
                             reject(err)
-                        }).then((rows) => {
+
+                        }).then((_) => {
                             console.log(`Added: "${username}"`)
                             resolve(getUser(username))
                         })
@@ -97,9 +110,11 @@ function deleteUser(username) {
                     console.error(err)
                     reject(err)   
                 } else {
-                    if (row.affectedRows === 0) {
+                    if (row.affectedRows === 0) { // It means nothing changed at all
+
                         console.error(`User not found: `, username)
                         reject({error: 'User not found'})
+
                     } else {
                         resolve(row)
                     }
@@ -108,49 +123,59 @@ function deleteUser(username) {
     })
 }
 
+/*
+ * Will check there is an account that match both username and
+ * password  
+ */
+function checkAccount(username, password) {
+    return new Promise((resolve, reject) => {
+        connection.query(`SELECT * FROM users WHERE username =
+                 '${username}' AND password = '${password}';
+        `, (err, rows) => {
+            if (err) {
+                reject(err)
+            } else {
+                if (rows.length === 0) {
+                    reject({error: 'not_found'})
+                } else {
+                    resolve(username)
+                }
+            }       
+        })
+    })
+}
+
+function login(username, password) {
+    return new Promise((resolve, reject) => {
+        const validationResult = validateInput(email, passw)
+
+        if (validateInput.error) {
+            console.error("Invalid credentials")
+            reject(validationResult)
+        } 
+        
+        checkAccount(username, password).then((username) => {
+            console.log('Found account')
+            console.log('Logging in user: ' + username + 
+                        'with password: '+ password)
+            resolve(getUser(username))
+        })
+    })
+}
+
+/*
+ * Its an incomplete function by now
+ * but its okay since we doesnt
+ * implemented any user information 
+ * except name and password
+ * TODO
+ */
 function getUser(username) {
     return new User(username)
 }
 
-function checkAccount(email, passw, accounts) {
-    if (accounts[email] === passw) {    
-        console.log('Found account')
-        console.log('Logging in user: ' + email + 
-                    'with password: '+ passw)
-        
-        return searchUser(email)
-    } 
+module.exports = {signUp, login, deleteUser, checkUsernameAvailability, 
+    checkAccount, validateInput, registerAtSQL}
 
-    // Return error if no matching account is found
-    return { error: 'Email or password is incorrect' };
-}
 
-function login(email, passw) {
-    const validationResult = validateInput(email, passw)
-    if (validateInput.error) {
-        
-        console.log(validateInput.error)
-    
-        return validationResult
-    }
 
-    // Get list of accounts
-    const accounts = getMapFromJSON(FILE_ACCOUNTS);
-
-    return checkAccount(email, passw, accounts)
-}
-
-// Search for an user using email
-function searchUser(email) {
-    
-    for (let i = 0; i < users.length; i++) {
-        if (users[i].email == email) {
-            console.log('Found user: ' + users[i].email) 
-                
-            return new User(users[i].name, users[i].email)
-        }}
-    
-    throw Error('Email not found')
-}
-
-module.exports = {signUp, login, deleteUser, User}

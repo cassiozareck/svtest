@@ -113,7 +113,7 @@ function deleteUser(username) {
                     if (row.affectedRows === 0) { // It means nothing changed at all
 
                         console.error(`User not found: `, username)
-                        reject({error: 'User not found'})
+                        reject({error: 'user_not_found'})
 
                     } else {
                         resolve(row)
@@ -175,7 +175,7 @@ function getUser(username) {
 }
 
 module.exports = {signUp, login, deleteUser, checkUsernameAvailability, 
-    checkAccount, validateInput, registerAtSQL}
+    checkAccount, validateInput, registerAtSQL, User}
 
 
 

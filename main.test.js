@@ -1,67 +1,98 @@
 'use strict';
 
-const {deleteUser, signUp, login} = require('./src/user')
-const main = require('./src/main')
-const mysql = require('mysql-mock');
+const user = require('./src/user')
 
-// Create a new MySQL mock database
-const db = mysql.createConnection();
+/* Mock so we dont need to connect to database */
+const dbAcc = [
+    {username: 'alice', password: '123123'},
+    {username: 'pedro', password: '321321'},
+    {username: 'Ariel', password: 'm022'},
+]
 
-// Define the schema for the database
-db.schema({
-  accounts: {
-    id: { type: 'increments', primary: true },
-    username: { type: 'string', maxlength: 150, unique: true},
-    password: { type: 'string', maxlength: 254}
-  }
-});
-
-// Insert some rows into the 'users' table
-db.table('accounts').insert([
-  { name: 'Alice', email: 'alice@example.com' },
-  { name: 'Bob', email: 'bob@example.com' },
-  { name: 'Charlie', email: 'charlie@example.com' }
-]);
-
-// Query the 'users' table
-const users = db.table('users').select();
-
-// Mock so we dont need to connect to SQL
-main.connection = db
-
-test('Just registering normal user', () => { 
-    signUp('testuser', '123123').then((user) => {
-        expect(user).toStrictEqual(new User('testuser'));
-    }).catch((err) => {throw err})
-});    
-
-test('Registering same user', () => {
-    signUp('Charlie', '123123').catch(err => {
-        expect(err).toStrictEqual({error: 'not_available'});
+user.registerAtSQL = jest.fn((username, password) => {
+  
+    return Promise((resolve, reject) => {
+        dbAcc.push({username, password})
+        resolve(username)
     })
 })
 
-test('Registering invalid credentials', () => {
-    signUp('testuser', '').catch((err) => {
-        expect(err).toStrictEqual({error: 'invalid_credentials'});
+
+user.checkUsernameAvailability = jest.fn((uname) => {
+  
+    return Promise((resolve, reject) => {
+        dbAcc.forEach((username, _) => {
+            if (username === uname) {
+                resolve(false)
+            }  
+        })        
+        resolve(true)
     })
-    signUp('    ', '123').catch((err) => {
-        expect(err).toStrictEqual({error: 'invalid_credentials'});
+})
+
+user.deleteUser = jest.fn((uname) => {
+
+    return Promise((resolve, reject) => {
+        const index = dbAcc.indexOf(uname);
+
+        if (index > -1) {
+            dbAcc.splice(index, 1);
+            resolve()
+        } else {
+            reject({error: 'user_not_found'})
+        }
     })
-    signUp('testuser', 123123).catch((err) => {
-        expect(err).toStrictEqual({error: 'invalid_credentials'});
+})
+
+user.signUp = jest.fn(user.signUp)
+user.login = jest.fn(user.signUp)
+
+test('Just registering normal user', async () => { 
+
+    await user.signUp('testuser', '123123').then((user) => {
+        expect(user).toStrictEqual(new User('testuser'));
+    }).catch((err) => {throw err})
+
+    expect(user.registerAtSQL).toEqual(1)
+    expect(user.checkUsernameAvailability).toEqual(1)
+    expect(user.signUp).toEqual(1)
+
+});    
+
+test('Registering same user', async () => {
+    await user.signUp('alice', '123123').catch(err => {
+        expect(err).toEqual({error: 'not_available'});
     })
-    signUp('testuser', '  ').catch((err) => {
-        expect(err).toStrictEqual({error: 'invalid_credentials'});
+
+    expect(user.checkUsernameAvailability).toBeCalledTimes(1)
+    expect(user.signUp).toEqual(1)
+})
+
+test('Registering invalid credentials', async () => {
+    await user.signUp('testuser', '').catch((err) => {
+        expect(err).toEqual({error: 'invalid_credentials'});
     })
-    
+    await user.signUp('    ', '123').catch((err) => {
+        expect(err).toEqual({error: 'invalid_credentials'});
+    })
+    await user.signUp('testuser', 123123).catch((err) => {
+        expect(err).toEqual({error: 'invalid_credentials'});
+    })
+    await user.signUp('testuser', '  ').catch((err) => {
+        expect(err).toEqual({error: 'invalid_credentials'});
+    })
+
+    expect(user.signUp).toBeCalledTimes(4)
 });
 
-test('Log in newly created user', () => {
-    signUp('DarkNight', '123123').then((_) => {
-        login('DarkNight', '123123').then((username) => {
-            expect(username).toStrictEqual('DarkNight');
+test('Log in newly created user', async () => {
+    await user.signUp('DarkNight', '123123').then((_) => {
+        user.login('DarkNight', '123123').then((username) => {
+            expect(username).toEqual('DarkNight');
         }).catch(() => {})
     }).catch(() => {})
+
+    expect(user.signUp).toBeCalledTimes(1)
+    expect(user.login).toBeCalledTimes(1)
 })
 

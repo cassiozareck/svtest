@@ -29,7 +29,8 @@ function validateInput(username, password) {
  * with the given username argument. It returns a promise of 
  * course because it is a sql call (async)
  */
-const checkUsernameAvailability = (username) => {
+function checkUsernameAvailability(username) {
+   
     return new Promise((resolve, reject) => {
        
         connection.query(
@@ -62,6 +63,7 @@ function registerAtSQL(username, password) {
 }
 
 function signUp(username, password) {
+    
     return new Promise((resolve, reject) => {
         const res = validateInput(username, password)
         

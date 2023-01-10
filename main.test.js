@@ -1,82 +1,65 @@
 'use strict'
 
 const user = require("./src/user")
+const sql = require("./src/sql")
 const tests = require("./src/tests")
 
-beforeAll(async () => {
+
+/* Mock so we dont need to connect to database */
+const dbAcc = [
+    {username: 'alice', password: '123123'},
+    {username: 'pedro', password: '321321'},
+    {username: 'Ariel', password: 'm022'},
+]
+
+sql.registerAtSQL = jest.fn((username, password) => {
     
-    /* Mock so we dont need to connect to database */
-    const dbAcc = [
-        {username: 'alice', password: '123123'},
-        {username: 'pedro', password: '321321'},
-        {username: 'Ariel', password: 'm022'},
-    ]
-
-    user.registerAtSQL = jest.fn((username, password) => {
-        
-        return new Promise((resolve, reject) => {
-            dbAcc.push({username, password})
-            resolve(username)
-        })
+    return new Promise((resolve, reject) => {
+        dbAcc.push({username, password})
+        resolve(username)
     })
-
-    user.checkUsernameAvailability = jest.fn((uname) => {
-        console.log("WHY'RE SO OBSSEDED")
-        return new Promise((resolve, reject) => {
-            dbAcc.forEach((username, _) => {
-               
-                if (username === uname) {
-                    resolve(true)
-                }  
-            })        
-            resolve(true)
-        })
-    })
-
-    user.deleteUser = jest.fn((uname) => {
-
-        return new Promise((resolve, reject) => {
-            const index = dbAcc.indexOf(uname);
-
-            if (index > -1) {
-                dbAcc.splice(index, 1);
-                resolve()
-            } else {
-                reject({error: 'user_not_found'})
-            }
-        })
-    })
-
-    user.signUp = jest.fn(user.signUp)
-    user.login = jest.fn(user.login)
 })
+
+sql.checkUsernameAvailability = jest.fn((uname) => {
+    console.log("WHY'RE SO OBSSEDED")
+    return new Promise((resolve, reject) => {
+        dbAcc.forEach((username, _) => {
+            
+            if (username === uname) {
+                resolve(true)
+            }  
+        })        
+        resolve(true)
+    })
+})
+
+sql.deleteUser = jest.fn((uname) => {
+    return new Promise((resolve, reject) => {
+        const index = dbAcc.indexOf(uname);
+
+        if (index > -1) {
+            dbAcc.splice(index, 1);
+            resolve()
+        } else {
+            reject({error: 'user_not_found'})
+        }
+    })
+})
+
+user.signUp = jest.fn(user.signUp)
+user.login = jest.fn(user.login)
+
 
 /**
  * The aim of this function is to reset mock counters such as
  * how much called the function was
  */
 function clearMocks() {
-    user.registerAtSQL.mockClear()
-    user.checkUsernameAvailability.mockClear()
+    sql.registerAtSQL.mockClear()
+    sql.checkUsernameAvailability.mockClear()
     user.signUp.mockClear()
     user.login.mockClear()
 }
-
-test('a', async () => {
-    user.checkUsernameAvailability = jest.fn((uname) => {
-        console.log("WHY'RE SO OBSSEDED")
-        return new Promise((resolve, reject) => {
-            dbAcc.forEach((username, _) => {
-               
-                if (username === uname) {
-                    resolve(true)
-                }  
-            })        
-            resolve(true)
-        })
-    })
-    tests.test()
-})
 
 test('Just registering normal user', async () => { 
     
@@ -84,8 +67,8 @@ test('Just registering normal user', async () => {
         expect(user).toEqual(new User('testuser'));
     }).catch((err) => {console.error(err)})
 
-    expect(user.registerAtSQL).toBeCalledTimes(1)
-    expect(user.checkUsernameAvailability).toBeCalledTimes(1)
+    expect(sql.registerAtSQL).toBeCalledTimes(1)
+    expect(sql.checkUsernameAvailability).toBeCalledTimes(1)
     expect(user.signUp).toBeCalledTimes(1)
 
     clearMocks()
@@ -96,7 +79,7 @@ test('Registering same user', async () => {
         expect(err).toEqual({error: 'not_available'});
     })
 
-    expect(user.checkUsernameAvailability).toBeCalledTimes(1)
+    expect(sql.checkUsernameAvailability).toBeCalledTimes(1)
     expect(user.signUp).toBeCalledTimes(1)
     
     clearMocks()

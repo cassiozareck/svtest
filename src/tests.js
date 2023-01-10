@@ -6,9 +6,11 @@
  * ao invés de só funções necessárias, e, também, utilizar por extensos 
  * as funções do arquivo importado, como: user.signUp() ao invés de signUp()
  */
-const user = require('./user') //  LEMBRE-SE BEM DISSO
+
+/*const user = require('./user') //  LEMBRE-SE BEM DISSO
 
 function test() {
-    checkUsernameAvailability('cassio').then(console.log(this))
+    user.checkUsernameAvailability('cassio').then(console.log(this))
 }
 module.exports = {test}
+*/

@@ -9,14 +9,11 @@
 'use strict'
 
 const express = require('express')
-const app = express()
 const bodyParser = require('body-parser')
 const mysql = require("mysql2")
 const user = require('./user')
 
-// Utility to parse requests comming from client side
-// apparently not in use since we are not using body
-app.use(bodyParser.urlencoded({extended: true}))
+const app = express()
 
 const port = 3000
 

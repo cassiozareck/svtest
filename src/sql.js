@@ -1,3 +1,4 @@
+const {connection} = require('./main')
 
 /*
  * Will of course verify if username or password isnt empty
@@ -20,18 +21,24 @@ function validateInput(username, password) {
  * course because it is a sql call (async)
  */
 function checkUsernameAvailability(username) {
-   
+    
     return new Promise((resolve, reject) => {
-        connection.query(
-            `SELECT username FROM accounts WHERE username = "${username}"`,
-            (err, rows) => {
-                if (err) {  // if the SQL call get an error
-                    reject(err)
-                } else {
-                    resolve(rows.length === 0) // true if it doesn't exist
+        try {
+            connection.query(
+                `SELECT username FROM accounts WHERE username = "${username}"`,
+                (err, rows) => {
+                     
+                    if (err) {  // if the SQL call get an error
+                        reject({error: 'error_checking_user'})
+                    } else {
+                        resolve(rows.length === 0) // true if it doesn't exist
+                    }
                 }
-            }
-            )
+                )
+        } catch(err) {
+            reject({error: 'connection_not_recognized'})
+        }
+
     })
 }
 
@@ -42,7 +49,7 @@ function registerAtSQL(username, password) {
                                                  "${password}")`,
             (err, rows) => {
                 if (err) {
-                    reject(err)
+                    reject({error: 'failed_registering_sql'})
                 } else {
                     resolve(rows)
                 }}

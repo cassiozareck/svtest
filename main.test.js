@@ -49,7 +49,6 @@ sql.deleteUser = jest.fn((uname) => {
 user.signUp = jest.fn(user.signUp)
 user.login = jest.fn(user.login)
 
-
 /**
  * The aim of this function is to reset mock counters such as
  * how much called the function was

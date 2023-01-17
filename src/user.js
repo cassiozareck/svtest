@@ -1,6 +1,5 @@
 /* -=============== ACCOUNT AND LOGIN MANAGEMENT */
 
-'use strict'
 const {connection} = require('./main')
 const sql = require('./sql')
 
@@ -10,6 +9,13 @@ class User {
     }
 }
 
+/**
+ * Will register a user 
+ * 
+ * @param {username} username 
+ * @param {password} password 
+ * @returns User (if everything goes ok, otherwise Error)
+ */
 function signUp(username, password) {
     
     return new Promise((resolve, reject) => {
@@ -19,16 +25,17 @@ function signUp(username, password) {
             console.error(`Invalid input ${username}, ${password}`)
             reject(res)
         }
-
+        
         sql.checkUsernameAvailability(username)
             .then((res) => {
+                console.log("reaching here")
                 if (res) {
                     console.log(`username: "${username}" available`)
                     
                     // Will register in accounts table
                     sql.registerAtSQL(username, password).catch(
                         (err) => {
-                            console.error(err)
+                            console.error(err.error)
                             reject(err)
 
                         }).then((_) => {
@@ -37,11 +44,13 @@ function signUp(username, password) {
                         })
 
                 } else {
+                    console.log("reaching herena")
                     console.error(`Username: ${username} not available`)
                     reject({error: `not_available`})
                 }
             }).catch((err) => {
-                    console.error(err)
+                console.log("reaching hereerr")
+                    console.error(err.error)
                     reject(err)
                 })
         })
@@ -73,6 +82,13 @@ function deleteUser(username) {
     })
 }
 
+/**
+ * Will login a user
+ *  
+ * @param {username} username 
+ * @param {password} password 
+ * @returns User (if everything goes ok, otherwise Error)
+ */
 function login(username, password) {
     return new Promise((resolve, reject) => {
         const validationResult = sql.validateInput(email, passw)

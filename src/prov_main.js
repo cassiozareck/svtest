@@ -1,30 +1,3 @@
-/* 
- * Copyright (c) 2022 - 2023 Snowflake Computing Inc. All rights reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * 
- * Author: Cássio Zareck
-*/
-'use strict'
-
-/* ------------------ DATABASE */
-
-const mysql = require("mysql2")
-
-const connection = mysql.createConnection({
-    host: '192.168.3.4',
-    user: 'remote_user',
-    password: 'Sql123123!',
-    database: 'books'
-})
-
-// Connect to the MySQL server
-connection.connect(function(err) {
-    if (err) throw err;
-    console.log('Connected to the MySQL server.');
-});
-
 const express = require('express')
 const user = require('./user')
 const app = express()
@@ -36,7 +9,6 @@ app.listen(port, () => {
   })
 
 /* -=============== EXPRESS */
-
 app.get('/', (req, res) => {
     const name = req.query.name
     res.send('Hello World! ' + name)
@@ -44,7 +16,7 @@ app.get('/', (req, res) => {
 
 // Define what happens when register data is send through
 // post signUp end point
-// Necessary keys for request: username, passwd
+// Necessary keys for request: username, passw
 app.post('/signup', (req, res) => {
     
     console.log(`Request to register user: ${req.query.username}`)
@@ -71,6 +43,3 @@ app.post('/login', (req, res) => {
     })
 })
 
-
-
-module.exports = {connection}

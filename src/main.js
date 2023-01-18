@@ -1,4 +1,5 @@
 /* 
+ *
  * Copyright (c) 2022 - 2023 Snowflake Computing Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -9,7 +10,7 @@
 'use strict'
 
 /* ------------------ DATABASE */
-
+// added in pc
 const mysql = require("mysql2")
 
 const connection = mysql.createConnection({
